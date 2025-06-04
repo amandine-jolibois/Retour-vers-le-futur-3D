@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Retour vers le Futur</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-event-set-component/dist/aframe-event-set-component.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+    <script>
+      // Composant pour contrôler la télé
+      AFRAME.registerComponent('tv-controller', {
+        init: function () {
+          this.isPlaying = false;
+          this.el.addEventListener('click', this.toggleVideo.bind(this));
+        },
+        toggleVideo: function () {
+          const video = document.querySelector('#bttf-video');
+          const screen = document.querySelector('#tv-screen');
+          const indicator = document.querySelector('#power-indicator');
+
+          if (this.isPlaying) {
+            video.pause();
+            screen.setAttribute('material', {
+              color: '#000000',
+              emissive: '#000000',
+              emissiveIntensity: 0,
+              src: null
+            });
+            indicator.setAttribute('material', 'color: #ff0000; emissive: #ff0000; emissiveIntensity: 0.8');
+            this.isPlaying = false;
+            console.log('📺 TV éteinte');
+          } else {
+            console.log('🎬 Tentative de lecture de la vidéo...');
+
+            video.play().then(() => {
+              console.log('✅ Vidéo lancée avec succès');
+
+              screen.setAttribute('material', {
+                src: '#bttf-video',
+                shader: 'standard',
+                transparent: false,
+                opacity: 1,
+                color: '#ffffff'
+              });
+
+              indicator.setAttribute('material', 'color: #00ff00; emissive: #00ff00; emissiveIntensity: 0.8');
+              this.isPlaying = true;
+              console.log('📺 TV allumée - Vidéo en cours');
+
+            }).catch(e => {
+              console.error('❌ Erreur lecture vidéo:', e);
+              screen.setAttribute('material', 'color: #ff0066; emissive: #ff0066; emissiveIntensity: 0.5');
+              indicator.setAttribute('material', 'color: #ffff00; emissive: #ffff00; emissiveIntensity: 0.8');
+            });
+          }
+        }
+      });
+
+      // Composant pour le son de la voiture
+      AFRAME.registerComponent('car-sound', {
+        init: function () {
+          this.el.addEventListener('click', this.playCarSound.bind(this));
+        },
+        playCarSound: function () {
+          const sound = document.querySelector('#delorean-engine');
+          sound.currentTime = 0;
+          sound.play().catch(e => console.log('Erreur son voiture:', e));
+          console.log('🚗 Son de la DeLorean !');
+        }
+      });
+
+      // Composant pour interactions hoverboard
+      AFRAME.registerComponent('hoverboard-interaction', {
+        init: function () {
+          this.el.addEventListener('click', this.boostHover.bind(this));
+        },
+        boostHover: function () {
+          this.el.setAttribute('animation', 'property: position; from: -6 1.5 -8; to: -6 2.5 -8; dir: alternate; loop: true; dur: 1000');
+          setTimeout(() => {
+            this.el.setAttribute('animation', 'property: position; from: -6 0.8 -8; to: -6 1.2 -8; dir: alternate; loop: true; dur: 2000');
+          }, 3000);
+          console.log('🛹 Hoverboard boost!');
+        }
+      });
+    </script>
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(45deg, #000428, #004e92);
+      }
+    </style>
+  </head>
+  <body>
+    <a-scene background="color: #001122" fog="type: exponential; density: 0.003; color: #001122;">
+      <a-assets>
+
+        <!-- Textures -->
+        <img id="poster1" src="assets/images/poster1.jpg" crossorigin="anonymous">
+        <img id="poster2" src="assets/images/poster2.jpg" crossorigin="anonymous">
+        <img id="sky360" src="assets/textures/sky.jpg" crossorigin="anonymous">
+        <img id="ground-texture" src="assets/textures/concrete.png" crossorigin="anonymous">
+        <img id="brick-texture" src="assets/textures/brick.jpg" crossorigin="anonymous">
+        <img id="windows-texture" src="assets/textures/windows.jpg" crossorigin="anonymous">
+        <img id="concrete-wall" src="assets/textures/concrete_wall.jpg" crossorigin="anonymous">
+        <img id="neon-sign" src="assets/textures/neon_sign.png" crossorigin="anonymous">
+        <img id="metal-grill" src="assets/textures/metal_grill.jpg" crossorigin="anonymous">
+        <img id="retro-pattern" src="assets/textures/retro_pattern.jpg" crossorigin="anonymous">
+
+        <!-- Modèles 3D -->
+        <a-asset-item id="marty-model" src="models/marty.glb"></a-asset-item>
+        <a-asset-item id="doc-model" src="models/doc.glb"></a-asset-item>
+        <a-asset-item id="delorean-model" src="models/delorean.glb"></a-asset-item>
+        <a-asset-item id="hoverboard-model" src="models/hoverboard.glb"></a-asset-item>
+
+        <!-- Sons -->
+        <audio id="delorean-engine" src="assets/audio/bttf_theme.wav" preload="auto"></audio>
+
+        <!-- Vidéo -->
+        <video id="bttf-video" src="assets/video/bttf_clip.mp4" preload="auto" loop crossorigin="anonymous" playsinline webkit-playsinline></video>
+      </a-assets>
+
+      <!-- Éclairage -->
+      <a-light type="ambient" color="#223344" intensity="0.6"></a-light>
+      <a-light type="directional" position="5 10 5" intensity="1.2" color="#ffffff" 
+               shadow="cast: true; mapSize: 1024 1024;"></a-light>
+
+      <!-- Caméra -->
+      <a-entity id="rig" position="0 1.6 10">
+        <a-camera look-controls wasd-controls cursor="rayOrigin: mouse"></a-camera>
+      </a-entity>
+
+      <!-- Environnement -->
+      <a-sky src="#sky360"></a-sky>
+      
+      <!-- Sol avec texture concrete -->
+      <a-plane rotation="-90 0 0" width="80" height="80" 
+               material="src: #ground-texture; repeat: 20 20"
+               shadow="receive: true"></a-plane>
+      
+      <!-- Route principale -->
+      <a-plane rotation="-90 0 0" width="4" height="100" position="0 0.01 -10"
+               material="color: #2a2a2a; roughness: 0.8"
+               shadow="receive: true"></a-plane>
+      
+      <!-- Route secondaire-->
+      <a-plane rotation="-90 0 0" width="60" height="3" position="0 0.01 -15"
+               material="color: #2a2a2a; roughness: 0.8"
+               shadow="receive: true"></a-plane>
+      
+      <!-- Lignes de route -->
+      <a-box position="0 0.02 -10" width="0.1" height="0.01" depth="100" 
+             material="color: #ffff00; emissive: #ffff00; emissiveIntensity: 0.5"></a-box>
+
+      <!-- DeLorean au centre -->
+      <a-entity id="delorean" 
+                gltf-model="#delorean-model" 
+                position="-5 0 15" 
+                scale="1.5 1.5 1.5"
+                rotation="0 0 0"
+                shadow="cast: true"
+                car-sound>
+      </a-entity>
+
+      <!-- Marty à gauche de la voiture -->
+      <a-entity id="marty" 
+                gltf-model="#marty-model" 
+                position="0 -3 -160" 
+                scale="1.2 1.2 1.2"
+                rotation="0 0 0"
+                shadow="cast: true"
+                animation-mixer="clip: *">
+      </a-entity>
+
+      <!-- Doc à droite de la voiture -->
+      <a-entity id="doc" 
+                gltf-model="#doc-model" 
+                position="5 1 -10" 
+                scale="1.2 1.2 1.2"
+                rotation="0 -30 0"
+                shadow="cast: true"
+                animation-mixer="clip: *">
+      </a-entity>
+
+      <!-- Générateur de flux temporel -->
+      <a-entity id="flux-capacitor" position="0 1 -20">
+        <a-cylinder radius="1" height="2" 
+                    material="color: #333; metalness: 0.9; roughness: 0.1"
+                    animation="property: rotation; to: 0 360 0; loop: true; dur: 5000"
+                    shadow="cast: true"></a-cylinder>
+        
+        <!-- Anneaux énergétiques -->
+        <a-torus position="0 1.5 0" radius="1.5" radius-tubular="0.08" 
+                 material="color: #00ffff; emissive: #00ffff; emissiveIntensity: 1"
+                 animation="property: rotation; to: 360 0 0; loop: true; dur: 3000"></a-torus>
+        <a-torus position="0 0.5 0" radius="1.2" radius-tubular="0.06" 
+                 material="color: #ff00ff; emissive: #ff00ff; emissiveIntensity: 1"
+                 animation="property: rotation; to: -360 0 0; loop: true; dur: 2500"></a-torus>
+        
+        <!-- Éclairage du générateur -->
+        <a-light type="point" position="0 1 0" intensity="2" color="#00ffff" distance="10"
+                 animation="property: light.intensity; from: 2; to: 0.8; dir: alternate; loop: true; dur: 1500"></a-light>
+      </a-entity>
+
+      <!-- Télévision à droite de la scène-->
+      <a-entity id="retro-tv" position="5 1.2 -8" tv-controller>
+        <!-- Boîtier de la télé -->
+        <a-box width="3" height="2.2" depth="0.6" 
+               material="color: #333333; metalness: 0.6; roughness: 0.4"zq
+               shadow="cast: true">
+          
+          <!-- Écran (vidéo intégrée) - Matériau noir par défaut -->
+          <a-plane id="tv-screen" position="0 0 0.31" width="2.6" height="1.8" 
+                   material="color: #000000; emissive: #000000; emissiveIntensity: 0">
+          </a-plane>
+          
+          <!-- Indicateur de marche -->
+          <a-sphere id="power-indicator" position="1.2 -0.8 0.35" radius="0.04" 
+                    material="color: #ff0000; emissive: #ff0000; emissiveIntensity: 0.8">
+          </a-sphere>
+          
+          <!-- Antenne -->
+          <a-cylinder position="0 1.3 0" radius="0.01" height="0.8" 
+                      material="color: #888888; metalness: 0.9"
+                      rotation="0 0 10">
+          </a-cylinder>
+        </a-box>
+      </a-entity>
+
+      <!-- Hoverboard flottant à gauchezq-->
+      <a-entity id="hoverboard" 
+                gltf-model="#hoverboard-model" 
+                position="-6 1 -15" 
+                scale="0.8 0.8 0.8"
+                rotation="0 45 0"
+                shadow="cast: true"
+                hoverboard-interaction
+                animation="property: position; from: -6 0.8 -8; to: -6 1.2 -8; dir: alternate; loop: true; dur: 2000">
+        <!-- Effet de sustentation -->
+        <a-torus position="0 -0.3 0" radius="0.4" radius-tubular="0.02" 
+                 material="color: #00ffff; emissive: #00ffff; emissiveIntensity: 0.6; opacity: 0.8; transparent: true"
+                 animation="property: rotation; to: 0 360 0; loop: true; dur: 1500"></a-torus>
+      </a-entity>
+      
+      <!-- Cube interactif avec event-set -->
+      <a-box id="interactive-cube" 
+             position="8 1.5 -5" 
+             width="1.5" 
+             height="1.5" 
+             depth="1.5"
+             material="color: #ff6b35; metalness: 0.7; roughness: 0.3"
+             shadow="cast: true"
+             event-set__mouseenter="material.color: #00ff88; scale: 1.2 1.2 1.2"
+             event-set__mouseleave="material.color: #ff6b35; scale: 1 1 1"
+             event-set__click="material.color: #ff0066; rotation: 0 180 0"
+             animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
+        <!-- Particules lumineuses autour du cube -->
+        <a-sphere position="1 0 0" radius="0.05" 
+                  material="color: #ffff00; emissive: #ffff00; emissiveIntensity: 1"
+                  animation="property: rotation; to: 360 0 0; loop: true; dur: 2000"></a-sphere>
+        <a-sphere position="-1 0 0" radius="0.05" 
+                  material="color: #ff00ff; emissive: #ff00ff; emissiveIntensity: 1"
+                  animation="property: rotation; to: -360 0 0; loop: true; dur: 2000"></a-sphere>
+      </a-box>
+
+      <!-- Sphère interactive avec event-set (changement multiple) -->
+      <a-sphere id="interactive-sphere" 
+                position="-8 2 -5" 
+                radius="1"
+                material="color: #4ecdc4; metalness: 0.8; roughness: 0.2; emissive: #4ecdc4; emissiveIntensity: 0.3"
+                shadow="cast: true"
+                event-set__mouseenter="material.emissiveIntensity: 0.8; scale: 1.3 1.3 1.3"
+                event-set__mouseleave="material.emissiveIntensity: 0.3; scale: 1 1 1"
+                event-set__click="material.color: #ff4757; position: -8 3.5 -5"
+                event-set__clickend="material.color: #4ecdc4; position: -8 2 -5"
+                animation="property: rotation; to: 0 0 360; loop: true; dur: 6000">
+        <!-- Anneaux orbitaux -->
+        <a-torus position="0 0 0" radius="1.3" radius-tubular="0.03" 
+                 material="color: #00ffff; emissive: #00ffff; emissiveIntensity: 0.8; opacity: 0.7; transparent: true"
+                 animation="property: rotation; to: 360 0 90; loop: true; dur: 4000"></a-torus>
+        <a-torus position="0 0 0" radius="1.5" radius-tubular="0.02" 
+                 material="color: #ff6b6b; emissive: #ff6b6b; emissiveIntensity: 0.6; opacity: 0.5; transparent: true"
+                 animation="property: rotation; to: -360 90 0; loop: true; dur: 5000"></a-torus>
+      </a-sphere>
+
+      <!-- Cylindre avec interaction gestuelle avancée -->
+      <a-cylinder id="gesture-cylinder" 
+                  position="0 1.5 -5" 
+                  radius="0.8" 
+                  height="2"
+                  material="color: #a55eea; metalness: 0.6; roughness: 0.4"
+                  shadow="cast: true"
+                  event-set__mouseenter="material.color: #26de81; height: 2.5"
+                  event-set__mouseleave="material.color: #a55eea; height: 2"
+                  event-set__click="material.color: #fd79a8; rotation: 0 90 0; scale: 0.8 1.2 0.8"
+                  event-set__clickend="rotation: 0 0 0; scale: 1 1 1"
+                  animation="property: position; from: 0 1.5 -5; to: 0 2.2 -5; dir: alternate; loop: true; dur: 3000">
+        <!-- Lumière intégrée -->
+        <a-light type="point" position="0 1 0" intensity="1.5" color="#a55eea" distance="8"
+                 animation="property: light.intensity; from: 1.5; to: 0.5; dir: alternate; loop: true; dur: 2000"></a-light>
+      </a-cylinder>
+
+      <!-- NOUVEAUX BÂTIMENTS AMÉLIORÉS -->
+      <a-entity id="buildings-complex">
+        
+        <!-- Bâtiment 1: Immeuble de bureaux -->
+        <a-box position="-15 4 -20" width="4" height="8" depth="4" 
+               material="src: #windows-texture; repeat: 2 4"
+               shadow="cast: true">
+          <!-- Panneau publicitaire -->
+          <a-plane position="2.1 1 0" width="3" height="5" rotation="0 90 0"
+                   material="src: #poster1; opacity: 0.9"></a-plane>
+        </a-box>
+        
+        <!-- Bâtiment 2: Café rétro -->
+        <a-box position="15 3 -25" width="5" height="6" depth="3" 
+               material="src: #brick-texture; repeat: 3 3"
+               shadow="cast: true">
+          <!-- Enseigne du café -->
+          <a-plane position="0 2 1.6" width="4" height="5"
+                   material="src: #poster2; opacity: 0.9"></a-plane>
+        </a-box>
+
+        <!-- Bâtiment 3: Tour industrielle-->
+        <a-box position="-25 6 -35" width="3" height="12" depth="3" 
+               material="src: #concrete-wall; repeat: 2 6"
+               shadow="cast: true">
+        </a-box>
+
+        <!-- Bâtiment 4: Magasin vintage-->
+        <a-box position="20 2.5 -30" width="6" height="5" depth="4" 
+               material="src: #retro-pattern; repeat: 4 2"
+               shadow="cast: true">
+          <!-- Vitrine -->
+          <a-plane position="0 0 2.1" width="5" height="3"
+                   material="color: #87CEEB; opacity: 0.3; transparent: true; metalness: 0.9"></a-plane>
+        </a-box>
+
+        <!-- Bâtiments plus petits pour remplir -->
+        <a-box position="-8 2 -30" width="2" height="4" depth="2" 
+               material="src: #brick-texture; repeat: 1 2"
+               shadow="cast: true"></a-box>
+        
+        <a-box position="12 1.5 -35" width="3" height="3" depth="2" 
+               material="src: #concrete-wall; repeat: 2 1"
+               shadow="cast: true"></a-box>
+
+        <!-- Station-service rétro -->
+        <a-entity position="-20 0 -10">
+          <!-- Toit de la station -->
+          <a-box position="0 3 0" width="8" height="0.2" depth="6" 
+                 material="color: #FF6347; metalness: 0.3"></a-box>
+          <!-- Piliers -->
+          <a-cylinder position="-3 1.5 -2" radius="0.2" height="3" 
+                      material="color: #C0C0C0; metalness: 0.8"></a-cylinder>
+          <a-cylinder position="3 1.5 -2" radius="0.2" height="3" 
+                      material="color: #C0C0C0; metalness: 0.8"></a-cylinder>
+          <a-cylinder position="-3 1.5 2" radius="0.2" height="3" 
+                      material="color: #C0C0C0; metalness: 0.8"></a-cylinder>
+          <a-cylinder position="3 1.5 2" radius="0.2" height="3" 
+                      material="color: #C0C0C0; metalness: 0.8"></a-cylinder>
+          <!-- Pompe à essence -->
+          <a-box position="0 0.8 0" width="0.5" height="1.6" depth="0.3" 
+                 material="color: #FF0000; metalness: 0.5"></a-box>
+        </a-entity>
+      </a-entity>
+
+      <!-- Éléments urbains décoratifs -->
+      <a-entity id="urban-details">
+        
+        <!-- Poubelles -->
+        <a-cylinder position="-10 0.4 -8" radius="0.3" height="0.8" 
+                    material="color: #404040; metalness: 0.6"></a-cylinder>
+        <a-cylinder position="8 0.4 -12" radius="0.3" height="0.8" 
+                    material="color: #404040; metalness: 0.6"></a-cylinder>
+
+        <!-- Bancs publics -->
+        <a-entity position="-12 0 -5">
+          <a-box position="0 0.2 0" width="1.5" height="0.05" depth="0.3" 
+                 material="color: #8B4513; roughness: 0.8"></a-box>
+          <a-box position="0 0.4 0" width="1.5" height="0.05" depth="0.05" 
+                 material="color: #8B4513; roughness: 0.8"></a-box>
+          <a-cylinder position="-0.6 0.1 0" radius="0.03" height="0.2" 
+                      material="color: #666; metalness: 0.8"></a-cylinder>
+          <a-cylinder position="0.6 0.1 0" radius="0.03" height="0.2" 
+                      material="color: #666; metalness: 0.8"></a-cylinder>
+        </a-entity>
+
+        <!-- Panneaux de signalisation -->
+        <a-entity position="6 0 -18">
+          <a-cylinder position="0 1 0" radius="0.05" height="2" 
+                      material="color: #666; metalness: 0.8"></a-cylinder>
+          <a-box position="0 1.8 0" width="0.8" height="0.8" depth="0.02" 
+                 material="color: #FF0000; roughness: 0.2"></a-box>
+          <a-text position="0 1.8 0.02" value="STOP" align="center" 
+                  color="white" width="8"></a-text>
+        </a-entity>
+
+      </a-entity>
+
+      <!-- Lampadaires améliorés avec plus d'éclairage -->
+      <a-entity id="streetlights-enhanced">
+        <a-cylinder position="-8 0 -5" radius="0.05" height="3" 
+                    material="color: #666666; metalness: 0.8">
+          <a-sphere position="0 1.6 0" radius="0.15" 
+                    material="color: #ffaa00; emissive: #ffaa00; emissiveIntensity: 0.8"
+                    light="type: point; intensity: 1.5; distance: 12; color: #ffaa00"></a-sphere>
+        </a-cylinder>
+        
+        <a-cylinder position="8 0 -15" radius="0.05" height="3" 
+                    material="color: #666666; metalness: 0.8">
+          <a-sphere position="0 1.6 0" radius="0.15" 
+                    material="color: #ffaa00; emissive: #ffaa00; emissiveIntensity: 0.8"
+                    light="type: point; intensity: 1.5; distance: 12; color: #ffaa00"></a-sphere>
+        </a-cylinder>
+
+        <a-cylinder position="-18 0 -25" radius="0.05" height="3" 
+                    material="color: #666666; metalness: 0.8">
+          <a-sphere position="0 1.6 0" radius="0.15" 
+                    material="color: #ffaa00; emissive: #ffaa00; emissiveIntensity: 0.8"
+                    light="type: point; intensity: 1.5; distance: 12; color: #ffaa00"></a-sphere>
+        </a-cylinder>
+        
+        <a-cylinder position="18 0 -28" radius="0.05" height="3" 
+                    material="color: #666666; metalness: 0.8">
+          <a-sphere position="0 1.6 0" radius="0.15" 
+                    material="color: #ffaa00; emissive: #ffaa00; emissiveIntensity: 0.8"
+                    light="type: point; intensity: 1.5; distance: 12; color: #ffaa00"></a-sphere>
+        </a-cylinder>
+      </a-entity>
+
+    </a-scene>
+
+    <script>
+      // Initialisation de la scène
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log("Scène 'Retour vers le Futur' chargée!");
+        console.log("   - WASD: Déplacement");
+        console.log("   - Souris: Regarder autour");
+        console.log("   - Clic sur DeLorean: Son du moteur");
+        console.log("   - Clic sur TV: Allumer/Éteindre vidéo");
+        console.log("   - Clic sur Hoverboard: Boost d'altitude");
+        console.log("   - Cube orange (droite): Survol = vert + agrandissement, Clic = rose + rotation");
+        console.log("   - Sphère cyan (gauche): Survol = lumière intense + agrandissement, Clic = rouge + saut");
+        console.log("   - Cylindre violet (centre): Survol = vert + étirement, Clic = rose + rotation + compression");
+
+        const video = document.querySelector('#bttf-video');
+        video.addEventListener('loadeddata', function() {
+          console.log('📹 Vidéo prête à être lue');
+          console.log('📊 Durée vidéo:', video.duration + 's');
+          console.log('📐 Dimensions:', video.videoWidth + 'x' + video.videoHeight);
+        });
+        
+        video.addEventListener('error', function(e) {
+          console.error('❌ Erreur chargement vidéo:', e);
+        });
+        
+        // Gestion des événements vidéo pour debug
+        video.addEventListener('play', function() {
+          console.log('▶️ Vidéo en cours de lecture');
+        });
+        
+        video.addEventListener('pause', function() {
+          console.log('⏸️ Vidéo en pause');
+        });
+        
+        // Tentative de préchargement
+        video.load();
+      });
+    </script>
+  </body>
+</html>
