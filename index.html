@@ -75,9 +75,9 @@
           this.el.addEventListener('click', this.boostHover.bind(this));
         },
         boostHover: function () {
-          this.el.setAttribute('animation', 'property: position; from: -6 1.5 -8; to: -6 2.5 -8; dir: alternate; loop: true; dur: 1000');
+          this.el.setAttribute('animation', 'property: position; from: -25 2 20; to: -25 3.5 20; dir: alternate; loop: true; dur: 1000');
           setTimeout(() => {
-            this.el.setAttribute('animation', 'property: position; from: -6 0.8 -8; to: -6 1.2 -8; dir: alternate; loop: true; dur: 2000');
+            this.el.setAttribute('animation', 'property: position; from: -25 2 20; to: -6 0.5 -8; dir: alternate; loop: true; dur: 2000');
           }, 3000);
           console.log('🛹 Hoverboard boost!');
         }
@@ -126,7 +126,7 @@
                shadow="cast: true; mapSize: 1024 1024;"></a-light>
 
       <!-- Caméra -->
-      <a-entity id="rig" position="0 1.6 10">
+      <a-entity id="rig" position="0 1.6 35">
         <a-camera look-controls wasd-controls cursor="rayOrigin: mouse"></a-camera>
       </a-entity>
 
@@ -175,9 +175,9 @@
       <!-- Doc à droite de la voiture -->
       <a-entity id="doc" 
                 gltf-model="#doc-model" 
-                position="5 1 -10" 
+                position="5 1 -4" 
                 scale="1.2 1.2 1.2"
-                rotation="0 -30 0"
+                rotation="0 -170 0"
                 shadow="cast: true"
                 animation-mixer="clip: *">
       </a-entity>
@@ -227,19 +227,15 @@
         </a-box>
       </a-entity>
 
-      <!-- Hoverboard flottant à gauchezq-->
+      <!-- Hoverboard flottant à gauche-->
       <a-entity id="hoverboard" 
                 gltf-model="#hoverboard-model" 
-                position="-6 1 -15" 
+                position="-25 2 20" 
                 scale="0.8 0.8 0.8"
                 rotation="0 45 0"
                 shadow="cast: true"
                 hoverboard-interaction
-                animation="property: position; from: -6 0.8 -8; to: -6 1.2 -8; dir: alternate; loop: true; dur: 2000">
-        <!-- Effet de sustentation -->
-        <a-torus position="0 -0.3 0" radius="0.4" radius-tubular="0.02" 
-                 material="color: #00ffff; emissive: #00ffff; emissiveIntensity: 0.6; opacity: 0.8; transparent: true"
-                 animation="property: rotation; to: 0 360 0; loop: true; dur: 1500"></a-torus>
+                >
       </a-entity>
       
       <!-- Cube interactif avec event-set -->
